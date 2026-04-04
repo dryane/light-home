@@ -4,8 +4,6 @@ A minimal Apple HomeKit controller for the Light Phone 3, built on the [light-te
 
 Controls HomeKit devices via the [ItsyHome](https://github.com/nickustinov/itsyhome-macos) macOS web API.
 
-![Example Screenshot](assets/images/example.png)
-
 ## Features
 
 - **Rooms** — devices grouped by room, with smart group detection via calibration
