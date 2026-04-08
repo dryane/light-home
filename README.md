@@ -20,7 +20,7 @@ Controls HomeKit devices via the [ItsyHome](https://github.com/nickustinov/itsyh
 ## Setup
 
 1. Install [ItsyHome](https://github.com/nickustinov/itsyhome-macos) on your Mac and start the web server
-2. Build and install the app (see Commands below)
+2. install the app
 3. Open Settings and enter your local URL (e.g. `192.168.1.x:8423`)
 4. Go to Settings → Calibrate Scenes — your lights will flash briefly
 5. Navigate to Rooms and Scenes — everything should be grouped and labelled correctly
