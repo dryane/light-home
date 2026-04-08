@@ -56,7 +56,3 @@ Tapping a scene triggers it if not active, or turns all devices off if active.
 
 ### Groups
 Devices belonging to the same fingerprinted group are rendered as a single row in the Rooms tab. The group icon reflects the device type — lightbulb for lights, plug for outlets, and a devices icon for mixed groups.
-
-- The app ignores the `reachable` flag from the ItsyHome API — many devices report as unreachable even when they respond to commands, particularly Zigbee/Z-Wave devices bridged through HomeKit
-- Release builds require `android:usesCleartextTraffic="true"` in the Android manifest since ItsyHome runs over HTTP
-- No authentication — the ItsyHome API is open on the local network
