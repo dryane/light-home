@@ -28,7 +28,6 @@ Controls HomeKit devices via the [ItsyHome](https://github.com/nickustinov/itsyh
 ## To-Do
 
 - Hopefully not have to use itsyhome for HomeKit Controls
-- Not have to do calibrate devices
 - More controls outside of Lights & Outlets
 
 ## How it works
