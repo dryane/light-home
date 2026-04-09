@@ -15,8 +15,6 @@ Controls HomeKit devices via the [ItsyHome](https://github.com/nickustinov/itsyh
 
 ## Bugs
 
-- States can occasionally become out of sync
-
 ## Setup
 
 1. Install [ItsyHome](https://github.com/nickustinov/itsyhome-macos) on your Mac and start the web server
