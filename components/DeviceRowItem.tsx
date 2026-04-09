@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
   sliders: {
     paddingTop: n(8),
     paddingLeft: n(28),
+    paddingRight: n(20),
     gap: n(2),
   },
   sliderLabel: {

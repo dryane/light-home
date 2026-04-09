@@ -31,14 +31,32 @@ export function LightSlider({
   const rightColor = trackColorRight ?? defaultTrack;
 
   const trackWidth = useRef(0);
+  const trackPageX = useRef(0);
+  const isDragging = useRef(false);
+  const startValue = useRef(0);
+  const startPageX = useRef(0);
   const [localValue, setLocalValue] = useState(value);
 
-  // Keep local in sync when parent changes (e.g. SSE refresh)
-  // but don't override while dragging
-  const isDragging = useRef(false);
   const displayValue = isDragging.current ? localValue : value;
 
   const clamp = (v: number) => Math.max(0, Math.min(100, v));
+
+  const SNAP_POINTS = [0, 25, 50, 75, 100];
+  const SNAP_THRESHOLD = 4; // snap if within 4 units
+
+  const pageXToValue = (pageX: number): number => {
+    const x = pageX - trackPageX.current;
+    const raw = clamp((x / trackWidth.current) * 100);
+    const rounded = Math.round(raw);
+
+    // Snap to nearest snap point if within threshold
+    for (const point of SNAP_POINTS) {
+      if (Math.abs(raw - point) <= SNAP_THRESHOLD) {
+        return point;
+      }
+    }
+    return rounded;
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -46,20 +64,19 @@ export function LightSlider({
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (evt) => {
         isDragging.current = true;
-        const x = evt.nativeEvent.locationX;
-        const next = clamp(Math.round((x / trackWidth.current) * 100));
+        startPageX.current = evt.nativeEvent.pageX;
+        startValue.current = value;
+        const next = pageXToValue(evt.nativeEvent.pageX);
         setLocalValue(next);
         onValueChange?.(next);
       },
       onPanResponderMove: (evt) => {
-        const x = evt.nativeEvent.locationX;
-        const next = clamp(Math.round((x / trackWidth.current) * 100));
+        const next = pageXToValue(evt.nativeEvent.pageX);
         setLocalValue(next);
         onValueChange?.(next);
       },
       onPanResponderRelease: (evt) => {
-        const x = evt.nativeEvent.locationX;
-        const next = clamp(Math.round((x / trackWidth.current) * 100));
+        const next = pageXToValue(evt.nativeEvent.pageX);
         setLocalValue(next);
         onSlidingComplete?.(next);
         isDragging.current = false;
@@ -71,7 +88,6 @@ export function LightSlider({
   ).current;
 
   const pct = displayValue / 100;
-  const thumbOffset = pct; // 0–1, used as flex ratio
 
   return (
     <View
@@ -79,41 +95,41 @@ export function LightSlider({
       {...panResponder.panHandlers}
       onLayout={(e) => {
         trackWidth.current = e.nativeEvent.layout.width;
+        // Measure absolute page position for accurate touch mapping
+        (e.target as any)?.measure?.(
+          (_x: number, _y: number, _w: number, _h: number, pageX: number) => {
+            trackPageX.current = pageX;
+          }
+        );
       }}
     >
+      {/* Tick lines behind the track */}
+      <View style={styles.tickRow} pointerEvents="none">
+        {[0, 25, 50, 75, 100].map((point) => (
+          <View
+            key={point}
+            style={[
+              styles.tick,
+              { left: `${point}%` as any },
+            ]}
+          />
+        ))}
+      </View>
       <View style={styles.trackContainer}>
-        {/* Left fill */}
-        <View
-          style={[
-            styles.trackFill,
-            { flex: pct, backgroundColor: leftColor },
-          ]}
-        />
-        {/* Thumb */}
-        <View
-          style={[
-            styles.thumb,
-            { backgroundColor: activeColor },
-          ]}
-        />
-        {/* Right fill */}
-        <View
-          style={[
-            styles.trackFill,
-            { flex: 1 - pct, backgroundColor: rightColor },
-          ]}
-        />
+        <View style={[styles.trackFill, { flex: pct, backgroundColor: leftColor }]} />
+        <View style={[styles.thumb, { backgroundColor: activeColor }]} />
+        <View style={[styles.trackFill, { flex: 1 - pct, backgroundColor: rightColor }]} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Tall hit area for easy touch
   hitArea: {
     width: "100%",
-    height: n(32),
+    height: n(44),
     justifyContent: "center",
+    position: "relative",
   },
   trackContainer: {
     flexDirection: "row",
@@ -131,5 +147,20 @@ const styles = StyleSheet.create({
     borderRadius: THUMB_SIZE / 2,
     marginHorizontal: -(THUMB_SIZE / 2),
     zIndex: 1,
+  },
+  tickRow: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
+  },
+  tick: {
+    position: "absolute",
+    width: n(1),
+    height: n(8),
+    backgroundColor: "#3a3a3a",
+    marginLeft: -n(0.5),
   },
 });

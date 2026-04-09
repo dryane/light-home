@@ -41,7 +41,7 @@ iconCtx.fillText(firstLetter, iconSize / 2, iconY);
 
 const icon = iconCanvas;
 
-const screenshots = ["A", "B", "C", "D"];
+const screenshots = ["A", "B", "C"];
 const screenshotWidth = 573;
 const screenshotGap = 40;
 const screenshotY = 310;

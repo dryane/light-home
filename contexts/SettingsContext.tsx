@@ -6,7 +6,9 @@ import {
   useEffect,
   useState,
 } from "react";
-import { probeUrls, setBaseUrl } from "@/utils/api";
+import { fetchDebugRaw, probeUrls, setBaseUrl } from "@/utils/api";
+import { buildFingerprintFromRaw } from "@/utils/debugRaw";
+import { saveFingerprint } from "@/utils/fingerprint";
 
 const LOCAL_URL_KEY = "home:localUrl";
 const EXTERNAL_URL_KEY = "home:externalUrl";
@@ -51,6 +53,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setBaseUrl(result.activeUrl);
       setConnectionSource(result.source);
       setConnectionStatus("connected");
+      // Auto-sync fingerprint from /debug/raw
+      try {
+        const raw = await fetchDebugRaw();
+        const fp = buildFingerprintFromRaw(raw as any);
+        await saveFingerprint(fp);
+        console.log("[settings] fingerprint synced from /debug/raw");
+      } catch (e) {
+        console.log("[settings] fingerprint sync failed:", e);
+      }
     } else {
       setConnectionStatus("error");
       setConnectionSource(null);

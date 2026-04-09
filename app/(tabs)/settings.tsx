@@ -7,7 +7,9 @@ import { StyledText } from "@/components/StyledText";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
 import { useInvertColors } from "@/contexts/InvertColorsContext";
 import { useSettings } from "@/contexts/SettingsContext";
-import { getBaseUrl } from "@/utils/api";
+import { getBaseUrl, fetchDebugRaw } from "@/utils/api";
+import { buildFingerprintFromRaw } from "@/utils/debugRaw";
+import { saveFingerprint } from "@/utils/fingerprint";
 import { n } from "@/utils/scaling";
 
 export default function SettingsScreen() {
@@ -22,11 +24,25 @@ export default function SettingsScreen() {
   } = useSettings();
 
   const [localDraft, setLocalDraft] = useState(localUrl);
+  const [syncing, setSyncing] = useState(false);
   const [externalDraft, setExternalDraft] = useState(externalUrl);
 
   const textColor = invertColors ? "black" : "white";
   const dimColor = invertColors ? "#C1C1C1" : "#6E6E6E";
   const bgColor = invertColors ? "white" : "black";
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const raw = await fetchDebugRaw();
+      const fp = buildFingerprintFromRaw(raw as any);
+      await saveFingerprint(fp);
+    } catch (e) {
+      console.log("[settings] manual sync failed:", e);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleLocalSubmit = () => {
     setLocalUrl(localDraft.trim());
@@ -108,11 +124,13 @@ export default function SettingsScreen() {
         <StyledText style={[styles.sectionLabel, { color: dimColor }]}>
           scenes
         </StyledText>
-        <HapticPressable onPress={() => router.push("/calibrate")}>
-          <StyledText style={styles.action}>calibrate scenes</StyledText>
+        <HapticPressable onPress={handleSync}>
+          <StyledText style={[styles.action, syncing && { color: dimColor }]}>
+            {syncing ? "syncing···" : "sync scenes & groups"}
+          </StyledText>
         </HapticPressable>
         <StyledText style={[styles.hint, { color: dimColor }]}>
-          lights will flash during calibration
+          reads scene and group data directly from HomeKit
         </StyledText>
       </View>
 

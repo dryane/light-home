@@ -126,6 +126,12 @@ export async function controlMembersColor(
   await Promise.all(members.map((m) => controlColor(m.room, m.name, hue, saturation)));
 }
 
+// ─── Debug raw ────────────────────────────────────────────────────
+
+export function fetchDebugRaw(): Promise<unknown> {
+  return get("/debug/raw");
+}
+
 // ─── Scene control ─────────────────────────────────────────────────
 
 export function controlScene(sceneName: string): Promise<void> {
@@ -134,43 +140,86 @@ export function controlScene(sceneName: string): Promise<void> {
 
 // ─── SSE events ────────────────────────────────────────────────────
 
+export interface DeviceEvent {
+  characteristic: string; // "power", "brightness", "hue", "saturation"
+  device: string;
+  room: string;
+  value: boolean | number;
+  type: string;
+}
+
 export function subscribeToEvents(
+  onEvent: (event: DeviceEvent) => void,
   onHeartbeat: () => void,
   onError: () => void
 ): () => void {
   let closed = false;
   let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+  let xhr: XMLHttpRequest | null = null;
 
   function connect() {
     if (closed) return;
-    const controller = new AbortController();
 
-    fetch(`${baseUrl}/events`, { signal: controller.signal })
-      .then(async (res) => {
-        if (!res.body) return;
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done || closed) break;
-          const text = decoder.decode(value);
-          if (text.includes("heartbeat")) onHeartbeat();
+    xhr = new XMLHttpRequest();
+    xhr.open("GET", `${baseUrl}/events`, true);
+
+    let buffer = "";
+
+    const processBuffer = (newText: string) => {
+      buffer += newText;
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed === ": heartbeat") {
+          onHeartbeat();
+        } else if (trimmed.startsWith("data: ")) {
+          try {
+            const payload = JSON.parse(trimmed.slice(6));
+            console.log("[sse] event:", payload.device, payload.characteristic, payload.value);
+            onEvent(payload as DeviceEvent);
+          } catch {
+            // ignore malformed
+          }
         }
-      })
-      .catch(() => {
+      }
+    };
+
+    let lastLength = 0;
+    xhr.onreadystatechange = () => {
+      if (closed) return;
+      if (xhr!.readyState === 3 || xhr!.readyState === 4) {
+        const text = xhr!.responseText ?? "";
+        if (text.length > lastLength) {
+          processBuffer(text.slice(lastLength));
+          lastLength = text.length;
+        }
+      }
+      if (xhr!.readyState === 4) {
         if (!closed) {
           onError();
           retryTimeout = setTimeout(connect, 5000);
         }
-      });
+      }
+    };
 
-    return () => controller.abort();
+    xhr.onerror = () => {
+      if (!closed) {
+        onError();
+        retryTimeout = setTimeout(connect, 5000);
+      }
+    };
+
+    xhr.send();
   }
 
-  const cleanup = connect();
+  connect();
+
   return () => {
     closed = true;
-    cleanup?.();
+    xhr?.abort();
+    xhr = null;
     if (retryTimeout) clearTimeout(retryTimeout);
   };
 }

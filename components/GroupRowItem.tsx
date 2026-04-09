@@ -8,8 +8,8 @@ import { ToggleSwitchGraphic } from "@/components/ToggleSwitchGraphic";
 import { useHomeData } from "@/contexts/HomeDataContext";
 import { useInvertColors } from "@/contexts/InvertColorsContext";
 import {
-  controlGroupOn,
-  controlGroupOff,
+  controlOn,
+  controlOff,
   controlMembersBrightness,
   controlMembersColor,
 } from "@/utils/api";
@@ -48,12 +48,12 @@ export function GroupRowItem({ row }: Props) {
   const colorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleToggle = async () => {
-    if (!row.groupName) return;
     const next = !isOn;
     members.forEach((m) => updateDeviceState(m.room, m.name, { on: next }));
     try {
-      if (next) await controlGroupOn(row.groupName);
-      else await controlGroupOff(row.groupName);
+      await Promise.all(
+        members.map((m) => next ? controlOn(m.room, m.name) : controlOff(m.room, m.name))
+      );
     } catch {
       members.forEach((m) => updateDeviceState(m.room, m.name, { on: isOn }));
     }
@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
   sliders: {
     paddingTop: n(8),
     paddingLeft: n(28),
+    paddingRight: n(20),
     gap: n(2),
   },
   sliderLabel: {

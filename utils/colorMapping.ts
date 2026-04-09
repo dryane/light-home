@@ -1,8 +1,8 @@
-// Maps a warm/cool slider value (0 = warm, 100 = cool) to hue + saturation.
-// We keep saturation low so it reads as white light, not coloured.
-// Warm end: hue ~30 (amber), saturation ~15
-// Cool end: hue ~210 (blue-white), saturation ~10
-// Centre: neutral white (saturation 0)
+// Warm/cool slider (0 = warm, 50 = neutral, 100 = cool)
+// Based on real bulb measurements:
+//   Warm: hue 30, saturation 67
+//   Neutral: hue 0, saturation 0
+//   Cool: hue 251, saturation 5
 
 export function warmCoolToHueSaturation(value: number): {
   hue: number;
@@ -17,30 +17,33 @@ export function warmCoolToHueSaturation(value: number): {
     const t = 1 - value / 50; // 1 at warmest, 0 at neutral
     return {
       hue: Math.round(30 * t),
-      saturation: Math.round(15 * t),
+      saturation: Math.round(67 * t),
     };
   }
 
   // Cool side: 50 (neutral) → 100 (coolest)
   const t = (value - 50) / 50; // 0 at neutral, 1 at coolest
   return {
-    hue: Math.round(210 * t),
-    saturation: Math.round(10 * t),
+    hue: Math.round(251 * t),
+    saturation: Math.round(5 * t),
   };
 }
 
-// Reverse: given hue + saturation from device state, return slider value 0–100
+// Reverse: given hue + saturation, return slider value 0–100
 export function hueSaturationToWarmCool(hue: number, saturation: number): number {
   if (saturation === 0) return 50;
 
-  // Determine if warm (hue 0–90) or cool (hue 150–270)
-  if (hue <= 90) {
-    // Warm
-    const t = hue / 30;
+  // Warm side: hue 0–40, saturation > 5
+  if (hue <= 40 && saturation > 5) {
+    const t = saturation / 67;
     return Math.round(50 - t * 50);
   }
 
-  // Cool
-  const t = hue / 210;
-  return Math.round(50 + t * 50);
+  // Cool side: hue 200–360, low saturation
+  if (hue > 200) {
+    const t = hue / 251;
+    return Math.round(50 + Math.min(t, 1) * 50);
+  }
+
+  return 50;
 }

@@ -34,7 +34,7 @@ function deviceMatchesTarget(
 }
 
 export default function ScenesScreen() {
-  const { scenes, devices, updateDeviceState } = useHomeData();
+  const { devices, updateDeviceState } = useHomeData();
   const { invertColors } = useInvertColors();
   const [fingerprint, setFingerprint] = useState<Fingerprint | null>(null);
   const [hasChecked, setHasChecked] = useState(false);
@@ -174,32 +174,23 @@ export default function ScenesScreen() {
     <ContentContainer headerTitle="Scenes" hideBackButton contentWidth="wide">
       {noFingerprint && (
         <View style={styles.promptBlock}>
-          <StyledText style={styles.promptLabel}>calibration needed</StyledText>
+          <StyledText style={styles.promptLabel}>no scene data</StyledText>
           <StyledText style={styles.promptBody}>
-            no scene data found. calibrate so the app can learn which devices
-            belong to each scene.{"\n\n"}lights will flash briefly.
+            go to settings and tap sync scenes & groups.
           </StyledText>
-          <HapticPressable onPress={() => router.push("/calibrate")}>
-            <StyledText style={styles.promptAction}>calibrate now</StyledText>
-          </HapticPressable>
-          <HapticPressable onPress={() => setHasChecked(false)}>
-            <StyledText style={[styles.promptAction, { color: dimColor }]}>
-              skip
-            </StyledText>
-          </HapticPressable>
         </View>
       )}
 
-      {scenes.map((scene) => {
-        const { isOn, summary, targets } = getSceneState(scene.name);
+      {Object.keys(fingerprint?.scenes ?? {}).map((sceneName) => {
+        const { isOn, summary, targets } = getSceneState(sceneName);
 
         return (
-          <View key={scene.name} style={styles.sceneRow}>
+          <View key={sceneName} style={styles.sceneRow}>
             <HapticPressable
-              onPress={() => handleSceneTrigger(scene.name, targets)}
+              onPress={() => handleSceneTrigger(sceneName, targets)}
               style={styles.sceneMain}
             >
-              <StyledText style={styles.sceneName}>{scene.name}</StyledText>
+              <StyledText style={styles.sceneName}>{sceneName}</StyledText>
               <ToggleSwitchGraphic value={isOn} />
             </HapticPressable>
             <StyledText style={[styles.sceneSub, { color: dimColor }]}>
