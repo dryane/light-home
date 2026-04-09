@@ -72,7 +72,7 @@ function buildRoomRows(
 }
 
 export default function RoomsScreen() {
-  const { rooms, devices, groups, loading } = useHomeData();
+  const { rooms, devices, groups } = useHomeData();
   const { connectionStatus } = useSettings();
   const [fingerprint, setFingerprint] = useState<Fingerprint | null>(null);
 
@@ -95,10 +95,7 @@ export default function RoomsScreen() {
 
   return (
     <ContentContainer headerTitle="Home" hideBackButton contentWidth="wide">
-      {loading ? (
-        <StyledText style={styles.muted}>loading</StyledText>
-      ) : (
-        rooms.map((room) => {
+      {rooms.map((room) => {
           const rows = roomRows[room.name] ?? [];
           if (rows.length === 0) return null;
           return (
@@ -115,8 +112,7 @@ export default function RoomsScreen() {
               )}
             </View>
           );
-        })
-      )}
+        })}
     </ContentContainer>
   );
 }

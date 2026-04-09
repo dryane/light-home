@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
   type ReactNode,
@@ -54,20 +55,41 @@ const HomeDataContext = createContext<HomeDataContextType>({
 
 export const useHomeData = () => useContext(HomeDataContext);
 
+const CACHE_KEY = "home:deviceCache";
+
 export function HomeDataProvider({ children }: { children: ReactNode }) {
   const { connectionStatus } = useSettings();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [devices, setDevices] = useState<DeviceWithState[]>([]);
+  const [hasCache, setHasCache] = useState(false);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [status, setStatus] = useState<HomeStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const isFirstLoad = useRef(true);
   const unsubRef = useRef<(() => void) | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
+  // Load cached state on mount so UI shows immediately
+  useEffect(() => {
+    AsyncStorage.getItem(CACHE_KEY).then((raw) => {
+      if (!raw) return;
+      try {
+        const cached = JSON.parse(raw);
+        if (cached.rooms) setRooms(cached.rooms);
+        if (cached.devices) setDevices(cached.devices);
+        if (cached.scenes) setScenes(cached.scenes);
+        if (cached.groups) setGroups(cached.groups);
+        setHasCache(true);
+        setLoading(false);
+      } catch {}
+    });
+  }, []);
+
   const load = useCallback(async () => {
     if (connectionStatus !== "connected") return;
-    setLoading(true);
+    // Only show loading spinner if we have no cached data
+    if (!hasCache) setLoading(true);
     try {
       const [roomList, deviceList, sceneList, groupList, statusData, rawData] =
         await Promise.all([
@@ -93,6 +115,14 @@ export function HomeDataProvider({ children }: { children: ReactNode }) {
       }));
 
       setDevices(devicesWithState);
+
+      // Cache the data for next app open
+      AsyncStorage.setItem(CACHE_KEY, JSON.stringify({
+        rooms: roomList,
+        devices: devicesWithState,
+        scenes: sceneList,
+        groups: groupList,
+      })).catch(() => {});
     } catch (err) {
       console.error("[HomeData] load failed:", err);
     } finally {
