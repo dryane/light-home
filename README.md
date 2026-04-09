@@ -35,15 +35,6 @@ Controls HomeKit devices via the [ItsyHome](https://github.com/nickustinov/itsyh
 ### Connection
 The app connects to ItsyHome's local web API. It tries the local URL first and falls back to the external URL if unreachable. Both are configurable in Settings.
 
-### Calibration
-Since the ItsyHome API doesn't expose scene or group membership, the app discovers it automatically:
-
-**Scenes** — for each scene, all devices are turned off, the scene is triggered, and any device that turns on is recorded as a member. This runs twice and the results are intersected for reliability. After membership is confirmed, the scene is triggered once more and the exact brightness, hue, and saturation values are captured as targets.
-
-**Groups** — each group is toggled on/off/on while polling device states. Devices that respond consistently are recorded as members. Groups are fingerprinted sequentially and devices are restored between each run to prevent cross-contamination.
-
-All devices are restored to their original state after calibration completes.
-
 ### Scene status
 Scenes show one of four states based on comparing current device state to fingerprinted targets (±5 tolerance):
 - **active** — all devices match the scene's target values
