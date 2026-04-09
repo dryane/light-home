@@ -1,4 +1,4 @@
-# Home
+<img src="assets/images/example.png" alt="Home">
 
 A minimal HomeKit Controller for the Light Phone 3
 
