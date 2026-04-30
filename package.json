@@ -1,7 +1,7 @@
 {
 	"name": "home",
 	"main": "expo-router/entry",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"scripts": {
 		"dev": "expo run:android",
 		"sync-version": "bun scripts/sync-version.js",

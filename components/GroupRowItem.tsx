@@ -96,12 +96,12 @@ export function GroupRowItem({ row }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.mainRow}>
+        <HapticPressable hitSlop="5" onPress={handleToggle} style={styles.toggleHit}>
+          <ToggleSwitchGraphic value={isOn} />
+        </HapticPressable>
         <HapticPressable onPress={handleLabelPress} style={styles.left}>
           <MaterialIcons name={iconName} size={n(18)} color={iconColor} />
           <StyledText style={styles.name}>{row.name}</StyledText>
-        </HapticPressable>
-        <HapticPressable onPress={handleToggle} style={styles.toggleHit}>
-          <ToggleSwitchGraphic value={isOn} />
         </HapticPressable>
       </View>
 
@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
   },
   sliders: {
     paddingTop: n(8),
-    paddingLeft: n(28),
-    paddingRight: n(20),
+    paddingLeft: n(0),
+    paddingRight: n(10),
     gap: n(2),
   },
   sliderLabel: {
@@ -163,6 +163,6 @@ const styles = StyleSheet.create({
   },
   toggleHit: {
     padding: n(16),
-    marginRight: n(-16),
+    marginLeft: n(-16),
   },
 });

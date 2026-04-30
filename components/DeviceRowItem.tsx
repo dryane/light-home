@@ -83,6 +83,9 @@ export function DeviceRowItem({ row }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.mainRow}>
+        <HapticPressable hitSlop="5" onPress={handleToggle} style={styles.toggleHit}>
+          <ToggleSwitchGraphic value={isOn} />
+        </HapticPressable>
         <HapticPressable onPress={handleLabelPress} style={styles.left}>
           <MaterialIcons
             name={device.type === "light" ? "lightbulb" : "power"}
@@ -90,9 +93,6 @@ export function DeviceRowItem({ row }: Props) {
             color={iconColor}
           />
           <StyledText style={styles.name}>{device.name}</StyledText>
-        </HapticPressable>
-        <HapticPressable onPress={handleToggle} style={styles.toggleHit}>
-          <ToggleSwitchGraphic value={isOn} />
         </HapticPressable>
       </View>
 
@@ -154,6 +154,6 @@ const styles = StyleSheet.create({
   },
   toggleHit: {
     padding: n(16),
-    marginRight: n(-16),
+    marginLeft: n(-16),
   },
 });

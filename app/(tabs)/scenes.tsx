@@ -190,8 +190,8 @@ export default function ScenesScreen() {
               onPress={() => handleSceneTrigger(sceneName, targets)}
               style={styles.sceneMain}
             >
+              <ToggleSwitchGraphic value={isOn} hitSlop="5" />
               <StyledText style={styles.sceneName}>{sceneName}</StyledText>
-              <ToggleSwitchGraphic value={isOn} />
             </HapticPressable>
             <StyledText style={[styles.sceneSub, { color: dimColor }]}>
               {summary}
@@ -211,11 +211,12 @@ const styles = StyleSheet.create({
   sceneMain: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "start",
     width: "100%",
   },
   sceneName: {
     fontSize: n(28),
+    marginLeft: n(16),
   },
   sceneSub: {
     fontSize: n(14),
